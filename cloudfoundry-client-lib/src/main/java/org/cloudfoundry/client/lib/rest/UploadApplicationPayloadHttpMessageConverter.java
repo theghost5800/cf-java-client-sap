@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +34,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StreamUtils;
 
 /**
  * Implementation of {@link HttpMessageConverter} that can write {@link org.cloudfoundry.client.lib.domain.UploadApplicationPayload}s. The
@@ -63,11 +65,13 @@ public class UploadApplicationPayloadHttpMessageConverter implements HttpMessage
         throws IOException, HttpMessageNotWritableException {
         setOutputContentType(contentType, outputMessage);
 
-        FileCopyUtils.copy(t.getInputStream(), outputMessage.getBody());
+        System.out.println(MessageFormat.format("WRITING to controller httOutputMessage:{0}", outputMessage.getClass()
+            .getSimpleName()));
+        StreamUtils.copy(t.getInputStream(), outputMessage.getBody());
         outputMessage.getBody()
             .flush();
-
-        writeApplicationZipToFile(t.getInputStream());
+        //
+        // writeApplicationZipToFile(t.getInputStream());
     }
 
     private void setOutputContentType(MediaType contentType, HttpOutputMessage outputMessage) {

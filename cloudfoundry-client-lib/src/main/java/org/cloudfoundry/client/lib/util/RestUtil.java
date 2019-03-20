@@ -75,6 +75,7 @@ public class RestUtil {
 
         HttpClient httpClient = httpClientBuilder.build();
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        requestFactory.setBufferRequestBody(false);
 
         return requestFactory;
     }

@@ -26,6 +26,7 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,6 +44,15 @@ import javax.websocket.ClientEndpointConfig;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.cloudfoundry.client.lib.ApplicationLogListener;
 import org.cloudfoundry.client.lib.ClientHttpResponseCallback;
 import org.cloudfoundry.client.lib.CloudCredentials;
@@ -1723,15 +1733,36 @@ public class CloudControllerRestClientImpl implements CloudControllerRestClient 
         callback.onMatchedFileNames(knownRemoteResources.getFilenames());
         UploadApplicationPayload payload = new UploadApplicationPayload(archive, knownRemoteResources);
         callback.onProcessMatchedResources(payload.getTotalUncompressedSize());
-        HttpEntity<?> entity = generatePartialResourceRequest(payload, knownRemoteResources);
+        // HttpEntity<?> entity = generatePartialResourceRequest(payload, knownRemoteResources);
 
         UUID packageGuid = createPackageForApplication(appGuid);
 
-        ResponseEntity<Map<String, Object>> responseEntity = getRestTemplate().exchange(getUrl("/v3/packages/{packageGuid}/upload"),
-            HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {
-            }, packageGuid);
+        // ResponseEntity<Map<String, Object>> responseEntity = getRestTemplate().exchange(getUrl("/v3/packages/{packageGuid}/upload"),
+        // HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {
+        // }, packageGuid);
 
-        CloudPackage cloudPackage = resourceMapper.mapResource(responseEntity.getBody(), CloudPackage.class);
+        HttpClient client = HttpClientBuilder.create()
+            .build();
+        HttpPost post = new HttpPost(MessageFormat.format(getUrl("/v3/packages/{0}/upload"), packageGuid.toString()));
+        post.setHeader("User-Agent", "Apache-HttpClient/4.5.6");
+        String authorizationHeader = oauthClient.getAuthorizationHeader();
+        if (authorizationHeader != null) {
+            post.setHeader(AUTHORIZATION_HEADER_KEY, authorizationHeader);
+        }
+
+        if (cloudCredentials != null && cloudCredentials.getProxyUser() != null) {
+            post.setHeader(PROXY_USER_HEADER_KEY, cloudCredentials.getProxyUser());
+        }
+        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+        entityBuilder.addPart("bits", new FileBody(new File(archive.getFilename())));
+        ObjectMapper mapper = new ObjectMapper();
+        String knownRemoteResourcesPayload = mapper.writeValueAsString(knownRemoteResources);
+        entityBuilder.addPart("resources", new StringBody(knownRemoteResourcesPayload, ContentType.APPLICATION_JSON));
+        post.setEntity(entityBuilder.build());
+        HttpResponse response = client.execute(post);
+        String responseString = EntityUtils.toString(response.getEntity());
+
+        CloudPackage cloudPackage = resourceMapper.mapResource(JsonUtil.convertJsonToMap(responseString), CloudPackage.class);
 
         return new UploadToken(getUrl("/v3/packages/" + cloudPackage.getMeta()
             .getGuid()), cloudPackage.getMeta()
@@ -3027,6 +3058,8 @@ public class CloudControllerRestClientImpl implements CloudControllerRestClient 
         private ClientHttpRequestFactory delegate;
 
         public CloudControllerRestClientHttpRequestFactory(ClientHttpRequestFactory delegate) {
+            System.out.println(MessageFormat.format("Setted client factrory:{0}", delegate.getClass()
+                .getSimpleName()));
             this.delegate = delegate;
             captureDefaultReadTimeout();
         }

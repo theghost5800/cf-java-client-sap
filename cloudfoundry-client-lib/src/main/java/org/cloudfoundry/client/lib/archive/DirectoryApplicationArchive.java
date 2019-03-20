@@ -53,7 +53,7 @@ public class DirectoryApplicationArchive implements ApplicationArchive {
     }
 
     public String getFilename() {
-        return directory.getName();
+        return directory.getAbsolutePath();
     }
 
     private void collectEntries(List<Entry> entries, File directory) {

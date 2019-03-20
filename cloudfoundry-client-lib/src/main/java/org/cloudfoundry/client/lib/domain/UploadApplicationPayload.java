@@ -16,6 +16,8 @@
 
 package org.cloudfoundry.client.lib.domain;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ import java.util.Set;
 import org.cloudfoundry.client.lib.archive.ApplicationArchive;
 import org.cloudfoundry.client.lib.io.DynamicZipInputStream;
 import org.cloudfoundry.client.lib.io.DynamicZipInputStream.Entry;
+import org.cloudfoundry.client.lib.io.FileZipEntries;
 
 /**
  * A payload used to upload application data. The payload data is built from a source {@link ApplicationArchive}, excluding any entries that
@@ -38,6 +41,8 @@ public class UploadApplicationPayload {
     private ArrayList<Entry> entriesToUpload;
 
     private int totalUncompressedSize;
+
+    private FileZipEntries fileZipEntries;
 
     /**
      * Create a new {@link UploadApplicationPayload}.
@@ -57,6 +62,8 @@ public class UploadApplicationPayload {
                 totalUncompressedSize += entry.getSize();
             }
         }
+        // this.fileZipEntries = new FileZipEntries(entriesToUpload, archive.getFilename());
+        // this.fileZipEntries.storeAllEntries();
     }
 
     /**
@@ -74,7 +81,11 @@ public class UploadApplicationPayload {
      * @return the payload data
      */
     public InputStream getInputStream() {
-        return new DynamicZipInputStream(entriesToUpload);
+        try {
+            return new FileInputStream(archive.getFilename());
+        } catch (FileNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
