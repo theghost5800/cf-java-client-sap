@@ -57,7 +57,8 @@ public interface CloudControllerRestClient {
 
     void createApplication(String applicationName, Staging staging, Integer memory, Set<CloudRouteSummary> routes);
 
-    void createApplication(String applicationName, Staging staging, Integer disk, Integer memory, Set<CloudRouteSummary> routes, DockerInfo dockerInfo);
+    void createApplication(String applicationName, Staging staging, Integer disk, Integer memory, Set<CloudRouteSummary> routes,
+                           DockerInfo dockerInfo);
 
     void createServiceInstance(CloudServiceInstance serviceInstance);
 
@@ -246,6 +247,8 @@ public interface CloudControllerRestClient {
     OAuthClient getOAuthClient();
 
     Map<String, Object> getServiceInstanceParameters(UUID guid);
+
+    Map<String, Object> getUserProvidedServiceInstanceParameters(UUID guid);
 
     Map<String, Object> getServiceBindingParameters(UUID guid);
 

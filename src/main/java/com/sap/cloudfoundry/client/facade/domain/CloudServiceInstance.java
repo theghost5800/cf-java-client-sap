@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudfoundry.AllowNulls;
+import org.cloudfoundry.client.v3.serviceInstances.ServiceInstanceType;
 import org.immutables.value.Value;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -37,7 +38,7 @@ public abstract class CloudServiceInstance extends CloudEntity implements Deriva
 
     @Nullable
     public abstract ServiceInstanceType getType();
-    
+
     @Nullable
     public abstract ServiceOperation getLastOperation();
 

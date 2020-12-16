@@ -3,7 +3,7 @@ package com.sap.cloudfoundry.client.facade.domain;
 import java.text.MessageFormat;
 import java.util.Objects;
 
-import org.cloudfoundry.client.v2.serviceinstances.LastOperation;
+import org.cloudfoundry.client.v3.LastOperation;
 
 public class ServiceOperation {
 

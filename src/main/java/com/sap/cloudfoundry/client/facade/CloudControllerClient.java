@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.sap.cloudfoundry.client.facade.domain.UserRole;
 import org.cloudfoundry.client.v3.Metadata;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 
@@ -36,6 +35,7 @@ import com.sap.cloudfoundry.client.facade.domain.DropletInfo;
 import com.sap.cloudfoundry.client.facade.domain.InstancesInfo;
 import com.sap.cloudfoundry.client.facade.domain.Staging;
 import com.sap.cloudfoundry.client.facade.domain.Upload;
+import com.sap.cloudfoundry.client.facade.domain.UserRole;
 
 /**
  * The interface defining operations making up the Cloud Foundry Java client's API.
@@ -97,7 +97,8 @@ public interface CloudControllerClient {
      * @param routes list of route summary info for the app
      * @param dockerInfo docker params(image, username, password)
      */
-    void createApplication(String applicationName, Staging staging, Integer disk, Integer memory, Set<CloudRouteSummary> routes, DockerInfo dockerInfo);
+    void createApplication(String applicationName, Staging staging, Integer disk, Integer memory, Set<CloudRouteSummary> routes,
+                           DockerInfo dockerInfo);
 
     /**
      * Create a service instance.
@@ -444,6 +445,14 @@ public interface CloudControllerClient {
      * @return service instance parameters in key-value pairs
      */
     Map<String, Object> getServiceInstanceParameters(UUID guid);
+
+    /**
+     * Get all user-provided service instance parameters
+     * 
+     * @param guid The service instance guid
+     * @return user-provided service instance parameters in key-value pairs
+     */
+    Map<String, Object> getUserProvidedServiceInstanceParameters(UUID guid);
 
     /**
      * Get all service binding parameters.
